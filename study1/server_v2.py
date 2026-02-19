@@ -7,13 +7,17 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-HOST = "127.0.0.1"
-PORT = 8787
+HOST = "0.0.0.0"
+PORT = int(os.getenv("PORT", "8787"))
 OPENAI_ENDPOINT = "https://api.openai.com/v1/responses"
 
 
-def make_openai_payload(model: str, system_prompt: str, messages: list[dict], temperature: float | None) -> dict:
-    input_messages = [{"role": "system", "content": [{"type": "input_text", "text": system_prompt}]}]
+def make_openai_payload(
+    model: str, system_prompt: str, messages: list[dict], temperature: float | None
+) -> dict:
+    input_messages = [
+        {"role": "system", "content": [{"type": "input_text", "text": system_prompt}]}
+    ]
     for msg in messages:
         input_messages.append(
             {
@@ -22,10 +26,7 @@ def make_openai_payload(model: str, system_prompt: str, messages: list[dict], te
             }
         )
 
-    payload = {
-        "model": model,
-        "input": input_messages,
-    }
+    payload = {"model": model, "input": input_messages}
     if temperature is not None:
         payload["temperature"] = temperature
     return payload
@@ -47,11 +48,25 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
         self.end_headers()
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         self._set_headers(204)
+
+    def do_HEAD(self) -> None:  # noqa: N802
+        if self.path == "/":
+            self._set_headers(200, "text/plain")
+            return
+        self._set_headers(404, "text/plain")
+
+    def do_GET(self) -> None:  # noqa: N802
+        if self.path == "/":
+            self._set_headers(200, "text/plain")
+            self.wfile.write(b"ok")
+            return
+        self._set_headers(404, "text/plain")
+        self.wfile.write(b"not found")
 
     def do_POST(self) -> None:  # noqa: N802
         if self.path != "/chat":
@@ -62,7 +77,9 @@ class Handler(BaseHTTPRequestHandler):
         api_key = os.getenv("OPENAI_API_KEY", "").strip()
         if not api_key:
             self._set_headers(500)
-            self.wfile.write(json.dumps({"error": "OPENAI_API_KEY is not set in the server environment."}).encode("utf-8"))
+            self.wfile.write(
+                json.dumps({"error": "OPENAI_API_KEY is not set in the server environment."}).encode("utf-8")
+            )
             return
 
         try:
@@ -111,7 +128,11 @@ class Handler(BaseHTTPRequestHandler):
                 data = json.loads(res.read().decode("utf-8"))
         except HTTPError as exc:
             self._set_headers(exc.code)
-            self.wfile.write(json.dumps({"error": exc.read().decode("utf-8", errors="ignore") or "OpenAI HTTP error"}).encode("utf-8"))
+            self.wfile.write(
+                json.dumps(
+                    {"error": exc.read().decode("utf-8", errors="ignore") or "OpenAI HTTP error"}
+                ).encode("utf-8")
+            )
             return
         except URLError as exc:
             self._set_headers(502)
@@ -133,7 +154,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    print(f"Scenario Chatbot proxy listening on http://{HOST}:{PORT}")
+    print(f"Proxy listening on http://{HOST}:{PORT}")
     HTTPServer((HOST, PORT), Handler).serve_forever()
 
 
