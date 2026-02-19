@@ -293,8 +293,8 @@ function syncEditor() {
 function updateScenarioHeader() {
   const active = getActiveScenario();
   if (isParticipantBlinded()) {
-    elements.activeScenarioTitle.textContent = "HealthyLifeAI Sleep Support";
-    elements.activeScenarioDescription.textContent = "Please describe your sleep issue so we can build a practical plan together.";
+    elements.activeScenarioTitle.textContent = "HealthyLifeAI Sleep Management";
+    elements.activeScenarioDescription.textContent = "Please describe your sleep issue.";
     return;
   }
   elements.activeScenarioTitle.textContent = active.title;
