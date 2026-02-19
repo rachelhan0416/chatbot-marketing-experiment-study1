@@ -33,6 +33,7 @@ const DEFAULT_SCENARIOS = [
 
 const CLOSING_LINE =
   "How do you think about the solution? Would you like to add this suggestion to your sleep management plan?";
+const FINAL_LOCK_MESSAGE = "Thank you for sharing. Now please move to the next page.";
 
 const BASE_EXPERIMENT_RULES = [
   "Topic is sleep issues only.",
@@ -63,6 +64,7 @@ const state = {
     finalResponseGenerated: false,
   },
   isSending: false,
+  conversationLocked: false,
   forcedScenarioId: null,
   conditionSource: "manual",
 };
@@ -175,7 +177,7 @@ function wireEvents() {
 
   elements.chatForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (state.isSending) {
+    if (state.isSending || state.conversationLocked) {
       return;
     }
     const text = elements.userInput.value.trim();
@@ -189,6 +191,10 @@ function wireEvents() {
 }
 
 async function handleParticipantTurn(userText) {
+  if (state.conversationLocked) {
+    return;
+  }
+
   const scenario = getActiveScenario();
 
   if (state.flow.stage === "awaiting_symptoms") {
@@ -218,10 +224,6 @@ async function handleParticipantTurn(userText) {
   }
 
   if (state.flow.finalResponseGenerated) {
-    appendMessage(
-      "bot",
-      "Thanks for sharing. If you want, you can export this transcript now."
-    );
     return;
   }
 }
@@ -304,6 +306,7 @@ function updateScenarioHeader() {
 function resetChatWithOpening() {
   hideThinkingIndicator();
   state.transcript = [];
+  state.conversationLocked = false;
   state.flow = {
     stage: "awaiting_symptoms",
     symptomMessage: "",
@@ -314,6 +317,7 @@ function resetChatWithOpening() {
   elements.chatLog.innerHTML = "";
   const opening = getActiveScenario().opening || "Condition started.";
   appendMessage("bot", opening);
+  applyComposerState();
 }
 
 function appendMessage(role, text) {
@@ -348,8 +352,6 @@ async function generateFinalResponse() {
       },
       body: JSON.stringify({
         model: state.backend.model,
-    conditionSource: state.conditionSource,
-    forcedScenarioId: state.forcedScenarioId,
         systemPrompt: buildFinalSystemPrompt(scenario),
         messages: [
           {
@@ -370,10 +372,12 @@ async function generateFinalResponse() {
       throw new Error("Backend returned an empty reply.");
     }
 
-    const combined = `${payload.outputText.trim()}\n\n${CLOSING_LINE}`;
+    const combined = `${payload.outputText.trim()}\n\n${CLOSING_LINE}\n\n${FINAL_LOCK_MESSAGE}`;
     appendMessage("bot", combined);
     state.flow.stage = "completed";
     state.flow.finalResponseGenerated = true;
+    lockConversation();
+    postTranscriptToParent("conversation_completed");
     setStatus("Final recommendation generated.", "ok");
   } catch (error) {
     appendMessage(
@@ -543,20 +547,8 @@ function validateScenarioList(value) {
 }
 
 function exportTranscript() {
+  const payload = buildTranscriptPayload();
   const scenario = getActiveScenario();
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    botName: BOT_NAME,
-    scenarioId: state.activeScenarioId,
-    scenarioTitle: scenario.title,
-    roleFraming: scenario.roleFraming,
-    disclosureCondition: scenario.disclosureCondition,
-    flow: state.flow,
-    model: state.backend.model,
-    conditionSource: state.conditionSource,
-    forcedScenarioId: state.forcedScenarioId,
-    messages: state.transcript,
-  };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json",
   });
@@ -571,8 +563,51 @@ function exportTranscript() {
 
 function setSending(sending) {
   state.isSending = sending;
-  elements.userInput.disabled = sending;
-  elements.chatForm.querySelector("button[type='submit']").disabled = sending;
+  applyComposerState();
+}
+
+function lockConversation() {
+  state.conversationLocked = true;
+  applyComposerState();
+}
+
+function applyComposerState() {
+  const disabled = state.isSending || state.conversationLocked;
+  elements.userInput.disabled = disabled;
+  elements.chatForm.querySelector("button[type='submit']").disabled = disabled;
+}
+
+function buildTranscriptPayload() {
+  const scenario = getActiveScenario();
+  return {
+    exportedAt: new Date().toISOString(),
+    botName: BOT_NAME,
+    scenarioId: state.activeScenarioId,
+    scenarioTitle: scenario.title,
+    roleFraming: scenario.roleFraming,
+    disclosureCondition: scenario.disclosureCondition,
+    flow: state.flow,
+    model: state.backend.model,
+    conditionSource: state.conditionSource,
+    forcedScenarioId: state.forcedScenarioId,
+    messages: state.transcript,
+  };
+}
+
+function postTranscriptToParent(eventType) {
+  if (window.parent === window) {
+    return;
+  }
+  const payload = {
+    type: "study1_chatbot_event",
+    eventType,
+    data: buildTranscriptPayload(),
+  };
+  try {
+    window.parent.postMessage(payload, "*");
+  } catch {
+    // Ignore postMessage failures so chat completion isn't blocked.
+  }
 }
 
 function setStatus(message, kind) {
