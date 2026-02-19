@@ -52,7 +52,7 @@ const state = {
   activeScenarioId: DEFAULT_SCENARIOS[0].id,
   transcript: [],
   backend: {
-    apiBaseUrl: "http://127.0.0.1:8787",
+    apiBaseUrl: "https://chatbot-marketing-experiment-study1.onrender.com",
     model: "gpt-5-mini",
   },
   flow: {
