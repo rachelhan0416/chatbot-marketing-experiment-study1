@@ -36,8 +36,8 @@ The chatbot flow is controlled and consistent across conditions, with one LLM ca
 
 Condition URLs:
 
-- `https://YOUR_FRONTEND_DOMAIN/?condition=collaborator`
-- `https://YOUR_FRONTEND_DOMAIN/?condition=expert`
+- `https://YOUR_FRONTEND_DOMAIN/study1/go-collab.html`
+- `https://YOUR_FRONTEND_DOMAIN/study1/go-expert.html`
 
 ## Run Locally
 

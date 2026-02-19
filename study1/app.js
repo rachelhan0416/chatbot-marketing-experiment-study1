@@ -45,6 +45,7 @@ const BASE_EXPERIMENT_RULES = [
 ];
 
 const STORAGE_KEY = "scenario-chatbot-hybrid-study1-state";
+const SESSION_CONDITION_KEY = "study1_condition";
 
 const state = {
   scenarios: clone(DEFAULT_SCENARIOS),
@@ -467,8 +468,19 @@ function getRequestedConditionIdFromUrl() {
   return raw.trim();
 }
 
+function getRequestedConditionIdFromSession() {
+  const raw = sessionStorage.getItem(SESSION_CONDITION_KEY);
+  if (!raw) {
+    return null;
+  }
+  return raw.trim();
+}
+
 function applyUrlConditionLock() {
-  const requestedId = getRequestedConditionIdFromUrl();
+  const fromUrl = getRequestedConditionIdFromUrl();
+  const fromSession = getRequestedConditionIdFromSession();
+  const requestedId = fromUrl || fromSession;
+
   if (!requestedId) {
     state.forcedScenarioId = null;
     state.conditionSource = "manual";
@@ -479,13 +491,15 @@ function applyUrlConditionLock() {
   if (!match) {
     state.forcedScenarioId = null;
     state.conditionSource = "manual";
-    setStatus(`Invalid condition in URL: ${requestedId}`, "error");
+    if (fromUrl) {
+      setStatus(`Invalid condition in URL: ${requestedId}`, "error");
+    }
     return;
   }
 
   state.forcedScenarioId = requestedId;
   state.activeScenarioId = requestedId;
-  state.conditionSource = "url";
+  state.conditionSource = fromUrl ? "url" : "session";
 }
 
 function validateScenarioList(value) {
