@@ -9,7 +9,7 @@ const DEFAULT_SCENARIOS = [
     roleFraming: "collaborator",
     disclosureCondition: "no-self-disclosure",
     opening:
-      "Hi, I am HealthyLifeAI, your sleep support collaborator. We will work side by side to understand your sleep symptoms, timing, and severity, and co-create a practical plan that fits your life. I will contribute evidence-based insights, and you will contribute your lived experience so we can identify patterns and decide together what adjustments make the most sense. As we move forward, we will regularly reflect on what is working, refine strategies jointly, and adapt the plan based on your feedback and preferences. All conversations with HealthyLifeAI will be kept confidential and not shared with anyone else.",
+      "Hi, I am HealthyLifeAI, your sleep support collaborator. We will work side by side to understand your sleep symptoms, timing, and severity, and co-create a practical plan that fits your life. I will contribute evidence-based insights, and you will contribute your lived experience so we can identify patterns and decide together what adjustments make the most sense. As we move forward, we will regularly reflect on what is working, refine strategies jointly, and adapt the plan based on your feedback and preferences. All conversations with HealthyLifeAI will be kept confidential and not shared with anyone else. Can you describe your symptoms related to sleep difficulties?",
     effortsQuestion:
       "Could you share any efforts you have already made to improve your sleep quality?",
     disclosureQuestion:
@@ -23,7 +23,7 @@ const DEFAULT_SCENARIOS = [
     roleFraming: "expert",
     disclosureCondition: "no-self-disclosure",
     opening:
-      "Hi, I am HealthyLifeAI, your sleep advisor. Based on the sleep symptoms, timing, and severity you describe, I will analyze patterns and provide evidence-based recommendations to guide your sleep management. I will synthesize the information and outline a structured, data-driven plan designed to address underlying issues. You can rely on my expertise to identify effective strategies, and I will explain the reasoning behind each recommendation so you can make informed decisions with confidence. All conversations with HealthyLifeAI will be kept confidential and not shared with anyone else.",
+      "Hi, I am HealthyLifeAI, your sleep advisor. Based on the sleep symptoms, timing, and severity you describe, I will analyze patterns and provide evidence-based recommendations to guide your sleep management. I will synthesize the information and outline a structured, data-driven plan designed to address underlying issues. You can rely on my expertise to identify effective strategies, and I will explain the reasoning behind each recommendation so you can make informed decisions with confidence. All conversations with HealthyLifeAI will be kept confidential and not shared with anyone else. Can you describe your symptoms related to sleep difficulties?",
     effortsQuestion:
       "Could you share any efforts you have already made to improve your sleep quality?",
     disclosureQuestion:
