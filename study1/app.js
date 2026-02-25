@@ -70,6 +70,8 @@ const state = {
 };
 
 const elements = {
+  layout: document.querySelector(".layout"),
+  controlsPanel: document.querySelector(".controls"),
   scenarioSelect: document.getElementById("scenarioSelect"),
   scenarioEditor: document.getElementById("scenarioEditor"),
   applyScenariosBtn: document.getElementById("applyScenariosBtn"),
@@ -442,6 +444,13 @@ function isParticipantBlinded() {
 
 function applyParticipantBlinding() {
   const blinded = isParticipantBlinded();
+
+  if (elements.controlsPanel) {
+    elements.controlsPanel.style.display = blinded ? "none" : "";
+  }
+  if (elements.layout) {
+    elements.layout.style.gridTemplateColumns = blinded ? "1fr" : "";
+  }
 
   if (elements.scenarioLabel) {
     elements.scenarioLabel.style.display = blinded ? "none" : "";
