@@ -417,8 +417,8 @@ function buildFinalSystemPrompt(scenario) {
     "Output format rules:",
     "1) One short empathy sentence.",
     "2) One short evidence-aligned explanation sentence.",
-    "3) Exactly three practical sleep suggestions as numbered items.",
-    "4) Optional section title 'Plan items:' with up to three short bullet items.",
+    "3) Exactly two practical sleep suggestions as numbered items.",
+    "Keep the full response under 120 words.",
     "Do not include a closing question; that is added separately by the app.",
   ].join("\n");
 }
@@ -434,7 +434,7 @@ function buildFinalUserPrompt(scenario) {
     `- Sleep symptom description: ${state.flow.symptomMessage}`,
     `- Efforts already made: ${state.flow.effortsMessage}`,
     `- Additional personal context: ${disclosureText}`,
-    "Provide a concise response matching the required output format.",
+    "Provide a concise response matching the required output format and word limit.",
   ].join("\n");
 }
 
